@@ -42,10 +42,8 @@
     .pill { display:inline-block; padding: 4px 10px; border-radius: 999px; border:1px solid var(--line); color:var(--sub); font-size: 12px; margin-top: 10px; }
     .toast { display:none; margin-top:10px; color:#b8f5c2; font-size: 12px; }
 
-    /* ★ 追加：事件史を技名と同格に見せるための微調整 */
-    .event {
-      margin-top: 10px;
-    }
+    /* 事件史を技名と同格に見せる */
+    .event { margin-top: 10px; }
   </style>
 </head>
 <body>
@@ -73,18 +71,16 @@
     <div class="card result" id="resultCard">
       <div class="kicker">本日の判定</div>
 
-      <!-- 技名 -->
       <div class="move" id="moveName">—</div>
       <div class="meta" id="moveMeta">—</div>
 
-      <!-- ★ ここが変更点：事件史を“同格の判定”として表示 -->
       <div class="move event" id="historyText">—</div>
 
       <div class="hr"></div>
 
       <div class="kicker">動画（仮）</div>
       <div class="meta">
-        <a id="videoLink" href="#" target="_blank" rel="noopener">NJPW WORLDで該当シーンを見る（仮リンク）</a><br/>
+        <a id="videoLink" href="#" target="_blank" rel="noopener">NJPW WORLDで検索（仮）</a><br/>
         <span class="pill">会員以外は視聴できなくても導線になる</span>
       </div>
 
@@ -109,12 +105,12 @@
   const diary = document.getElementById('diary');
   const len = document.getElementById('len');
   const msg = document.getElementById('systemMsg');
-  const toast = document.getElementById('toast');
 
   const resultCard = document.getElementById('resultCard');
   const moveName = document.getElementById('moveName');
   const moveMeta = document.getElementById('moveMeta');
   const historyText = document.getElementById('historyText');
+  const videoLink = document.getElementById('videoLink');
 
   const judgeBtn = document.getElementById('judgeBtn');
   const clearBtn = document.getElementById('clearBtn');
@@ -153,20 +149,39 @@
 
   function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 
+  function copyText(text){
+    navigator.clipboard?.writeText(text).catch(()=>{
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    });
+  }
+
   judgeBtn.addEventListener('click', ()=>{
     const raw = diary.value.trim();
     if(!raw){
-      msg.innerHTML = "<strong>EVIL：</strong>空欄じゃ判定は出来ん！";
+      msg.innerHTML = "<strong>EVIL：</strong>空欄じゃ判定は出来ん！<br/>よ〜く覚えておけ！";
       resultCard.style.display = "none";
       return;
     }
 
-    msg.innerHTML = "<strong>判定完了。</strong><br/>当たる日も外れる日もある。それがプロレス。";
+    msg.innerHTML = raw.length > LIMIT
+      ? "<strong>オーカーン：</strong>長文は要らん。削ぎ落とせ。<br/>※40文字以内だと閣下は申しております"
+      : "<strong>判定完了。</strong><br/>当たる日も外れる日もある。それがプロレス。";
 
     const m = pick(moves);
     moveName.textContent = m.name;
     moveMeta.textContent = m.meta + " — " + m.q;
+
     historyText.textContent = pick(histories);
+
+    // ★ 動画リンク導線：A（NJPW WORLDで検索（技名））で固定
+    const q = encodeURIComponent(`NJPW WORLD ${m.name}`);
+    videoLink.href = `https://www.google.com/search?q=${q}`;
+    videoLink.textContent = `NJPW WORLDで検索（${m.name}）`;
 
     resultCard.style.display = "block";
     resultCard.scrollIntoView({behavior:"smooth"});
@@ -176,6 +191,18 @@
     diary.value = "";
     setCount();
     resultCard.style.display = "none";
+  });
+
+  shareBtn.addEventListener('click', ()=>{
+    if(resultCard.style.display !== "block") return;
+    const text = diary.value.trim().slice(0, LIMIT);
+    const share = `NJPW MOVE LOG（デモ）\n今日の一撃：${text}\n判定：${moveName.textContent}\n#NJPW #MOVelog`;
+    copyText(share);
+  });
+
+  copyMoveBtn.addEventListener('click', ()=>{
+    if(resultCard.style.display !== "block") return;
+    copyText(moveName.textContent);
   });
 })();
 </script>
