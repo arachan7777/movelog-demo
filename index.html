@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>MOVE LOG（デモ）</title>
+  <title>NJPW MOVE LOG（デモ）</title>
   <style>
     :root { --bg:#0b0b0c; --card:#131316; --text:#f2f2f4; --sub:#a8a8b3; --line:#24242a; --accent:#e6c15a; }
     * { box-sizing:border-box; }
@@ -45,7 +45,7 @@
 </head>
 <body>
   <div class="wrap">
-    <div class="title">MOVE LOG（デモ）</div>
+    <div class="title">NJPW MOVE LOG（デモ）</div>
     <div class="tag">日記を書いて、技を受ける。ズレたらズレたで、プロレス。</div>
 
     <div class="card">
@@ -75,7 +75,7 @@
       <div class="kicker">動画（仮）</div>
       <div class="meta">
         <a id="videoLink" href="#" target="_blank" rel="noopener">NJPW WORLDで該当シーンを見る（仮リンク）</a><br/>
-        <span class="pill" id="worldNote">会員以外は視聴できなくても導線になる</span>
+        <span class="pill">会員以外は視聴できなくても導線になる</span>
       </div>
 
       <div class="row" style="margin-top:12px;">
@@ -119,30 +119,26 @@
 
   const LIMIT = 40;
 
-  // 仮データ（後でいくらでも差し替え）
   const moves = [
-    { name:"ツープラトン誤爆", meta:"（タッグ系／全般）", q:"弁当の箸が無い。だが二人で当たってしまう日もある。", slug:"two-platoon" },
-    { name:"キドクラッチ", meta:"（木戸修）", q:"静かに怒ってる。今日はそれでいい。", slug:"kido" },
-    { name:"ケンカキック", meta:"（蝶野正洋）", q:"言い返さず、足だけが出る日。", slug:"chono" },
-    { name:"腕拉ぎ逆十字固め", meta:"（ケンドー・カシン）", q:"じわじわ効く。気づいた時には取れてる。", slug:"cassin" },
-    { name:"丸め込み", meta:"（矢野通／全般）", q:"一瞬の隙、日常に多い。", slug:"flash-pin" },
-    { name:"セントーン", meta:"（ヒロ斎藤）", q:"特に何もない日に落ちてくる。", slug:"saito" },
-    { name:"毒霧", meta:"（ムタ系）", q:"理由が分からない遅延。視界が白い。", slug:"mist" },
-    { name:"小こけし", meta:"（本間朋晃）", q:"靴下が片方いない。受け身は取れ。", slug:"honma" },
-    { name:"スポイラーチョーカー", meta:"（ディック東郷）", q:"相手のペースに乗らない。締める。", slug:"togo" },
-    { name:"昇天・改", meta:"（後藤洋央紀）", q:"空回りしても最後は立つ。", slug:"goto" },
+    { name:"ツープラトン誤爆", meta:"（タッグ系／全般）", q:"弁当の箸が無い。だが二人で当たってしまう日。" },
+    { name:"キドクラッチ", meta:"（木戸修）", q:"静かに怒ってる。今日はそれでいい。" },
+    { name:"ケンカキック", meta:"（蝶野正洋）", q:"言い返さず、足だけが出る日。" },
+    { name:"腕拉ぎ逆十字固め", meta:"（ケンドー・カシン）", q:"じわじわ効く。気づいた時には取れてる。" },
+    { name:"丸め込み", meta:"（矢野通／全般）", q:"一瞬の隙、日常に多い。" },
+    { name:"毒霧", meta:"（ムタ系）", q:"理由が分からない遅延。視界が白い。" },
+    { name:"スポイラーチョーカー", meta:"（ディック東郷）", q:"相手のペースに乗らない。締める。" },
+    { name:"昇天・改", meta:"（後藤洋央紀）", q:"空回りしても最後は立つ。" }
   ];
 
   const histories = [
     "今日は“日付で語る”文化の入口。1.4や10.12みたいに、日付が試合を呼び出す。",
     "今日は“事件史”のデモ。名試合じゃなく、空気が変わった日を拾う。",
-    "今日は“コアに光”のデモ。派手じゃない技が、人生では一番効く。",
+    "今日は“コアに光”のデモ。派手じゃない技が、人生では一番効く。"
   ];
 
   function setCount(){
     const n = diary.value.length;
     len.textContent = String(Math.min(n, LIMIT));
-    // 40を越えたらメッセージ演出（オーカーン）
     if(n > LIMIT){
       msg.innerHTML = "<strong>一撃で決めろ！</strong><br/>※40文字以内だと閣下は申しております（現在 "+n+" 文字）";
     } else {
@@ -160,12 +156,8 @@
     setTimeout(()=> toast.style.display="none", 1200);
   }
 
-  async function copyText(text){
-    try{
-      await navigator.clipboard.writeText(text);
-      showToast();
-    }catch(e){
-      // クリップボードが使えない環境向けフォールバック
+  function copyText(text){
+    navigator.clipboard?.writeText(text).then(showToast).catch(()=>{
       const ta = document.createElement('textarea');
       ta.value = text;
       document.body.appendChild(ta);
@@ -173,51 +165,42 @@
       document.execCommand('copy');
       document.body.removeChild(ta);
       showToast();
-    }
+    });
   }
 
   judgeBtn.addEventListener('click', ()=>{
     const raw = diary.value.trim();
     if(!raw){
-      // 空欄はEVIL（口調演出）
       msg.innerHTML = "<strong>EVIL：</strong>空欄じゃ判定は出来ん！<br/>よ〜く覚えておけ！";
       resultCard.style.display = "none";
       return;
     }
 
-    // 40字を超えた場合も判定はする（ただし一言入れる）
-    if(raw.length > LIMIT){
-      msg.innerHTML = "<strong>オーカーン：</strong>長文は要らん。削ぎ落とせ。<br/>※40文字以内だと閣下は申しております";
-    } else {
-      msg.innerHTML = "<strong>判定完了。</strong><br/>当たる日も外れる日もある。それがプロレス。";
-    }
+    msg.innerHTML = raw.length > LIMIT
+      ? "<strong>オーカーン：</strong>長文は要らん。削ぎ落とせ。"
+      : "<strong>判定完了。</strong><br/>当たる日も外れる日もある。それがプロレス。";
 
     const m = pick(moves);
     moveName.textContent = m.name;
     moveMeta.textContent = m.meta + "　—　" + m.q;
-
-    // 仮リンク（体裁だけ。後でNJPW側で差し替え）
-    videoLink.href = "#";
-    videoLink.textContent = "NJPW WORLDで該当シーンを見る（仮リンク）";
-
     historyText.textContent = pick(histories);
 
     resultCard.style.display = "block";
-    resultCard.scrollIntoView({behavior:"smooth", block:"start"});
+    resultCard.scrollIntoView({behavior:"smooth"});
   });
 
   clearBtn.addEventListener('click', ()=>{
     diary.value = "";
     setCount();
-    msg.innerHTML = "<strong>一撃で決めろ！</strong><br/>※40文字以内だと閣下は申しております";
     resultCard.style.display = "none";
   });
 
   shareBtn.addEventListener('click', ()=>{
     if(resultCard.style.display !== "block") return;
-    const text = diary.value.trim().slice(0, LIMIT);
-    const share = `MOVE LOG（デモ）\n今日の一撃：${text}\n判定：${moveName.textContent}\n#NJPW #MOVelog`;
-    copyText(share);
+    copyText(`NJPW MOVE LOG（デモ）
+今日の一撃：${diary.value.slice(0, LIMIT)}
+判定：${moveName.textContent}
+#NJPW #MOVelog`);
   });
 
   copyMoveBtn.addEventListener('click', ()=>{
