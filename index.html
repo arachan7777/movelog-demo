@@ -5,155 +5,52 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>NJPW MOVE LOG（デモ）</title>
   <style>
-    :root {
-      --bg:#0b0b0c;
-      --card:#131316;
-      --text:#f2f2f4;
-      --sub:#a8a8b3;
-      --line:#24242a;
-      --accent:#e6c15a;
-    }
+    :root { --bg:#0b0b0c; --card:#131316; --text:#f2f2f4; --sub:#a8a8b3; --line:#24242a; --accent:#e6c15a; }
     * { box-sizing:border-box; }
-    body {
-      margin:0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans JP", sans-serif;
-      background:var(--bg);
-      color:var(--text);
-    }
-    .wrap {
-      max-width:720px;
-      margin:0 auto;
-      padding:18px 14px 40px;
-    }
-    .title {
-      font-size:22px;
-      font-weight:900;
-      letter-spacing:.02em;
-    }
-    .tag {
-      margin-top:6px;
-      font-size:13px;
-      color:var(--sub);
-    }
-    .card {
-      background:var(--card);
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:14px;
-      margin-top:12px;
-    }
-    .label {
-      font-size:12px;
-      color:var(--sub);
-      margin-bottom:8px;
-    }
+    body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans JP", sans-serif; background:var(--bg); color:var(--text); }
+    .wrap { max-width:720px; margin:0 auto; padding:18px 14px 40px; }
+    .title { font-size:22px; font-weight:900; letter-spacing:.02em; }
+    .tag { margin-top:6px; font-size:13px; color:var(--sub); }
+
+    .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px; margin-top:12px; }
+    .label { font-size:12px; color:var(--sub); margin-bottom:8px; }
+
     textarea {
-      width:100%;
-      min-height:86px;
-      border-radius:12px;
-      border:1px solid var(--line);
-      background:#0f0f12;
-      color:var(--text);
-      padding:12px;
-      font-size:16px;
-      line-height:1.4;
-      resize:vertical;
+      width:100%; min-height:86px; resize:vertical;
+      border-radius:12px; border:1px solid var(--line);
+      background:#0f0f12; color:var(--text);
+      padding:12px; font-size:16px; line-height:1.4;
       outline:none;
     }
-    .row {
-      display:flex;
-      gap:10px;
-      align-items:center;
-      flex-wrap:wrap;
-      margin-top:10px;
-    }
+
+    .row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:10px; }
     button {
-      border:1px solid var(--line);
-      background:#17171c;
-      color:var(--text);
-      border-radius:12px;
-      padding:10px 12px;
-      font-size:14px;
-      font-weight:700;
-      cursor:pointer;
+      border:1px solid var(--line); background:#17171c; color:var(--text);
+      border-radius:12px; padding:10px 12px; font-size:14px; font-weight:700; cursor:pointer;
     }
-    button.primary {
-      background:#1e1e26;
-      border-color:#3a3a44;
-    }
-    .count {
-      margin-left:auto;
-      font-size:12px;
-      color:var(--sub);
-    }
-    .msg {
-      margin-top:10px;
-      padding:10px 12px;
-      border-radius:12px;
-      border:1px dashed #3a3a44;
-      background:#101014;
-      font-size:13px;
-    }
+    button.primary { background:#1e1e26; border-color:#3a3a44; }
+    .count { margin-left:auto; font-size:12px; color:var(--sub); }
+
+    .msg { margin-top:10px; padding:10px 12px; border-radius:12px; border:1px dashed #3a3a44; background:#101014; font-size:13px; }
     .msg strong { color:var(--accent); }
 
-    /* 判定表示 */
     .result { display:none; }
-    .section {
-      margin-top:6px;
-    }
-    .section-title {
-      font-size:12px;
-      color:var(--sub);
-      margin-bottom:4px;
-    }
-    .move-name {
-      font-size:22px;
-      font-weight:900;
-      letter-spacing:.02em;
-    }
-    .move-meta {
-      font-size:13px;
-      color:var(--sub);
-      margin-top:4px;
-    }
 
-    /* ★ 本日のプロレス事件史：技名と同格 */
-    .history {
-      margin-top:12px;
-      padding-top:12px;
-      border-top:1px solid var(--line);
-    }
-    .history-text {
-      font-size:22px;
-      font-weight:900;
-      letter-spacing:.02em;
-    }
+    .section-title { font-size:12px; color:var(--sub); margin-bottom:4px; }
+    .move-name { font-size:22px; font-weight:900; letter-spacing:.02em; }
+    .move-meta { font-size:13px; color:var(--sub); margin-top:4px; }
 
-    /* 動画導線 */
-    .video {
-      margin-top:12px;
-      padding-top:12px;
-      border-top:1px solid var(--line);
-    }
-    .video a {
-      color:var(--accent);
-      text-decoration:none;
-      font-weight:700;
-    }
+    /* 動画導線（先に出す） */
+    .video { margin-top:12px; padding-top:12px; border-top:1px solid var(--line); }
+    .video a { color:var(--accent); text-decoration:none; font-weight:700; }
     .video a:hover { text-decoration:underline; }
-    .video-note {
-      display:block;
-      margin-top:4px;
-      font-size:12px;
-      color:var(--sub);
-    }
+    .video-note { display:block; margin-top:4px; font-size:12px; color:var(--sub); }
 
-    .toast {
-      display:none;
-      margin-top:10px;
-      font-size:12px;
-      color:#b8f5c2;
-    }
+    /* 事件史（後に出す＆技名級にデカく） */
+    .history { margin-top:12px; padding-top:12px; border-top:1px solid var(--line); }
+    .history-text { font-size:22px; font-weight:900; letter-spacing:.02em; }
+
+    .toast { display:none; margin-top:10px; font-size:12px; color:#b8f5c2; }
   </style>
 </head>
 <body>
@@ -179,23 +76,21 @@
   </div>
 
   <div class="card result" id="resultCard">
-    <div class="section">
-      <div class="section-title">本日の判定</div>
-      <div class="move-name" id="moveName">—</div>
-      <div class="move-meta" id="moveMeta">—</div>
+    <div class="section-title">本日の判定</div>
+    <div class="move-name" id="moveName">—</div>
+    <div class="move-meta" id="moveMeta">—</div>
+
+    <!-- 動画（先） -->
+    <div class="video">
+      <div class="section-title">動画で受ける</div>
+      <a id="videoLink" href="#" target="_blank" rel="noopener">NJPW WORLDで検索</a>
+      <span class="video-note">会員以外は視聴できなくても導線になる</span>
     </div>
 
+    <!-- 事件史（後／技名級） -->
     <div class="history">
       <div class="section-title">本日のプロレス事件史</div>
       <div class="history-text" id="historyText">—</div>
-    </div>
-
-    <div class="video">
-      <div class="section-title">動画で受ける</div>
-      <a id="videoLink" href="#" target="_blank" rel="noopener">
-        NJPW WORLDで検索
-      </a>
-      <span class="video-note">会員以外は視聴できなくても導線になる</span>
     </div>
 
     <div class="row" style="margin-top:12px;">
@@ -219,6 +114,7 @@
   const diary = document.getElementById('diary');
   const len = document.getElementById('len');
   const msg = document.getElementById('systemMsg');
+
   const result = document.getElementById('resultCard');
   const moveName = document.getElementById('moveName');
   const moveMeta = document.getElementById('moveMeta');
@@ -228,17 +124,34 @@
 
   const LIMIT = 40;
 
+  // 技（仮）
   const moves = [
-    { name:"キドクラッチ", meta:"（木戸修） — 静かに怒ってる。今日はそれでいい。", q:"今日は“日付で語る”入口。1.4や10.12が試合を呼ぶ。" },
-    { name:"丸め込み", meta:"（矢野通／全般） — 一瞬の隙、日常に多い。", q:"今日は“コアに光”。派手じゃない技が一番効く。" },
-    { name:"スポイラーチョーカー", meta:"（ディック東郷） — 相手のペースに乗らない。締める。", q:"今日は“事件未満の日”。それでも記録は残る。" }
+    { name:"ツープラトン誤爆", meta:"（タッグ系／全般） — ぶつかったのに、なぜか勝つ日もある。" },
+    { name:"キドクラッチ", meta:"（木戸修） — 静かに怒ってる。今日はそれでいい。" },
+    { name:"ケンカキック", meta:"（蝶野正洋） — 口より先に、足が出る日。" },
+    { name:"腕拉ぎ逆十字固め", meta:"（ケンドー・カシン） — じわじわ効く。気づいた時には取れてる。" },
+    { name:"丸め込み", meta:"（矢野通／全般） — 一瞬の隙、日常に多い。" },
+    { name:"セントーン", meta:"（ヒロ斎藤） — 特に何もない日に落ちてくる。" },
+    { name:"毒霧", meta:"（ムタ系） — 理由が分からない日。視界が白い。" },
+    { name:"小こけし", meta:"（本間朋晃） — 無くした。だが受け身は取れ。" },
+    { name:"スポイラーチョーカー", meta:"（ディック東郷） — 相手のペースに乗らない。締める。" },
+    { name:"昇天・改", meta:"（後藤洋央紀） — 空回りしても最後は立つ。" }
+  ];
+
+  // ★ 事件史は技と切り離す（内容が勝手に薄くならない）
+  const histories = [
+    "日付で語る文化。1.4や10.12みたいに、数字が試合を呼び出す。",
+    "名試合じゃなく“空気が変わった日”を拾う。事件史はその入口。",
+    "派手じゃない技が、人生では一番効く。だから脇役に光が当たる。",
+    "『今日は何もない』日ほど、後で思い出す引き金になることがある。",
+    "全国興行の強み。土地が記憶を呼ぶ日がある（ここは拡張の余白）。"
   ];
 
   function updateCount() {
     const n = diary.value.length;
-    len.textContent = Math.min(n, LIMIT);
+    len.textContent = String(Math.min(n, LIMIT));
     if (n > LIMIT) {
-      msg.innerHTML = "<strong>オーカーン：</strong>長い。削ぎ落とせ。";
+      msg.innerHTML = "<strong>オーカーン：</strong>長文は要らん。削ぎ落とせ。";
     } else {
       msg.innerHTML = "<strong>一撃で決めろ！</strong><br>※40文字以内だと閣下は申しております";
     }
@@ -247,31 +160,51 @@
   diary.addEventListener('input', updateCount);
   updateCount();
 
-  function pick(arr) {
-    return arr[Math.floor(Math.random() * arr.length)];
+  function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+  function showToast() {
+    toast.style.display = "block";
+    setTimeout(() => toast.style.display = "none", 1000);
   }
 
-  function copy(text) {
-    navigator.clipboard.writeText(text).then(() => {
-      toast.style.display = "block";
-      setTimeout(()=>toast.style.display="none",1000);
-    });
+  async function copy(text) {
+    try {
+      await navigator.clipboard.writeText(text);
+      showToast();
+    } catch (e) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      showToast();
+    }
   }
 
   document.getElementById('judgeBtn').onclick = () => {
     const t = diary.value.trim();
     if (!t) {
-      msg.innerHTML = "<strong>EVIL：</strong>空欄じゃ判定は出来ん！";
+      msg.innerHTML = "<strong>EVIL：</strong>空欄じゃ判定は出来ん！<br>よ〜く覚えておけ！";
       result.style.display = "none";
       return;
     }
+
     const m = pick(moves);
     moveName.textContent = m.name;
     moveMeta.textContent = m.meta;
-    historyText.textContent = m.q;
+
+    // 動画導線（先に出す）：検索リンクとして体裁を固定
+    const q = encodeURIComponent(m.name);
+    videoLink.href = "https://njpwworld.com/search?q=" + q;
     videoLink.textContent = "NJPW WORLDで検索（" + m.name + "）";
+
+    // 事件史（後／技名級の表示）
+    historyText.textContent = pick(histories);
+
+    msg.innerHTML = "<strong>判定完了。</strong><br>当たる日も外れる日もある。それがプロレス。";
     result.style.display = "block";
-    result.scrollIntoView({behavior:"smooth"});
+    result.scrollIntoView({ behavior:"smooth", block:"start" });
   };
 
   document.getElementById('clearBtn').onclick = () => {
@@ -282,7 +215,8 @@
 
   document.getElementById('shareBtn').onclick = () => {
     if (result.style.display !== "block") return;
-    copy(`MOVE LOG\n判定：${moveName.textContent}\n#NJPW #MOVelog`);
+    const text = diary.value.trim().slice(0, LIMIT);
+    copy(`NJPW MOVE LOG（デモ）\n今日の一撃：${text}\n判定：${moveName.textContent}\n#NJPW #MOVelog`);
   };
 
   document.getElementById('copyMoveBtn').onclick = () => {
