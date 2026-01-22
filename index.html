@@ -54,4 +54,130 @@
     <div class="tag">日記を書いて、技を受ける。ズレたらズレたで、プロレス。</div>
 
     <div class="card">
-      <div class="label">今日の一撃（40文字以内推奨
+      <div class="label">今日の一撃（40文字以内推奨）</div>
+      <textarea id="diary" maxlength="200" placeholder="例：弁当買ったのに、箸が入ってなかった。"></textarea>
+
+      <div class="row">
+        <button class="primary" id="judgeBtn">技判定</button>
+        <button id="clearBtn">消す</button>
+        <div class="count"><span id="len">0</span>/40</div>
+      </div>
+
+      <div class="msg" id="systemMsg">
+        <strong>一撃で決めろ！</strong><br/>
+        ※40文字以内だと閣下は申しております
+      </div>
+      <div class="toast" id="toast">コピーしました。</div>
+    </div>
+
+    <div class="card result" id="resultCard">
+      <div class="kicker">本日の判定</div>
+
+      <!-- 技名 -->
+      <div class="move" id="moveName">—</div>
+      <div class="meta" id="moveMeta">—</div>
+
+      <!-- ★ ここが変更点：事件史を“同格の判定”として表示 -->
+      <div class="move event" id="historyText">—</div>
+
+      <div class="hr"></div>
+
+      <div class="kicker">動画（仮）</div>
+      <div class="meta">
+        <a id="videoLink" href="#" target="_blank" rel="noopener">NJPW WORLDで該当シーンを見る（仮リンク）</a><br/>
+        <span class="pill">会員以外は視聴できなくても導線になる</span>
+      </div>
+
+      <div class="row" style="margin-top:12px;">
+        <button id="shareBtn">X用文面をコピー</button>
+        <button id="copyMoveBtn">技名だけコピー</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="kicker">注意（デモ）</div>
+      <div class="meta">
+        ・画像・権利物は使わない前提。<br/>
+        ・技と日記のズレは仕様。SNSで広がる“余白”。<br/>
+        ・このページは「触感」確認のための疑似サイト。
+      </div>
+    </div>
+  </div>
+
+<script>
+(function(){
+  const diary = document.getElementById('diary');
+  const len = document.getElementById('len');
+  const msg = document.getElementById('systemMsg');
+  const toast = document.getElementById('toast');
+
+  const resultCard = document.getElementById('resultCard');
+  const moveName = document.getElementById('moveName');
+  const moveMeta = document.getElementById('moveMeta');
+  const historyText = document.getElementById('historyText');
+
+  const judgeBtn = document.getElementById('judgeBtn');
+  const clearBtn = document.getElementById('clearBtn');
+  const shareBtn = document.getElementById('shareBtn');
+  const copyMoveBtn = document.getElementById('copyMoveBtn');
+
+  const LIMIT = 40;
+
+  const moves = [
+    { name:"ツープラトン誤爆", meta:"（タッグ系／全般）", q:"弁当の箸が無い。だが二人で当たってしまう日。" },
+    { name:"キドクラッチ", meta:"（木戸修）", q:"静かに怒ってる。今日はそれでいい。" },
+    { name:"ケンカキック", meta:"（蝶野正洋）", q:"言い返さず、足だけが出る日。" },
+    { name:"腕拉ぎ逆十字固め", meta:"（ケンドー・カシン）", q:"じわじわ効く。気づいた時には取れてる。" },
+    { name:"丸め込み", meta:"（矢野通／全般）", q:"一瞬の隙、日常に多い。" },
+    { name:"毒霧", meta:"（ムタ系）", q:"理由が分からない遅延。視界が白い。" },
+    { name:"スポイラーチョーカー", meta:"（ディック東郷）", q:"相手のペースに乗らない。締める。" },
+    { name:"昇天・改", meta:"（後藤洋央紀）", q:"空回りしても最後は立つ。" }
+  ];
+
+  const histories = [
+    "今日は“日付で語る”文化の入口。1.4や10.12みたいに、日付が試合を呼び出す。",
+    "今日は“事件史”のデモ。名試合じゃなく、空気が変わった日を拾う。",
+    "今日は“コアに光”のデモ。派手じゃない技が、人生では一番効く。"
+  ];
+
+  function setCount(){
+    const n = diary.value.length;
+    len.textContent = String(Math.min(n, LIMIT));
+    msg.innerHTML = n > LIMIT
+      ? "<strong>一撃で決めろ！</strong><br/>※40文字以内だと閣下は申しております（現在 "+n+" 文字）"
+      : "<strong>一撃で決めろ！</strong><br/>※40文字以内だと閣下は申しております";
+  }
+
+  diary.addEventListener('input', setCount);
+  setCount();
+
+  function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+  judgeBtn.addEventListener('click', ()=>{
+    const raw = diary.value.trim();
+    if(!raw){
+      msg.innerHTML = "<strong>EVIL：</strong>空欄じゃ判定は出来ん！";
+      resultCard.style.display = "none";
+      return;
+    }
+
+    msg.innerHTML = "<strong>判定完了。</strong><br/>当たる日も外れる日もある。それがプロレス。";
+
+    const m = pick(moves);
+    moveName.textContent = m.name;
+    moveMeta.textContent = m.meta + " — " + m.q;
+    historyText.textContent = pick(histories);
+
+    resultCard.style.display = "block";
+    resultCard.scrollIntoView({behavior:"smooth"});
+  });
+
+  clearBtn.addEventListener('click', ()=>{
+    diary.value = "";
+    setCount();
+    resultCard.style.display = "none";
+  });
+})();
+</script>
+</body>
+</html>
