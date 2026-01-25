@@ -59,7 +59,7 @@
     .pill { display:inline-block; padding: 4px 10px; border-radius: 999px; border:1px solid var(--line); color:var(--sub); font-size: 12px; margin-top: 10px; }
     .toast { display:none; margin-top:10px; color:#b8f5c2; font-size: 12px; }
 
-    /* ===== モータル（C：中央カード画像→技名） ===== */
+    /* ===== モータル（画像→技名） ===== */
     .modal {
       position: fixed;
       inset: 0;
@@ -67,66 +67,67 @@
       z-index: 9999;
       pointer-events: none; /* デモではタップで閉じない */
       background: rgba(0,0,0,0);
-      transition: background 180ms ease;
+      transition: background 200ms ease;
     }
     .modal.on { display:block; }
 
-    /* 背景：暗めで固定（Cの土台） */
-    .modal.showimg,
+    /* 背景画像レイヤー */
+    .modal-bg {
+      position:absolute;
+      inset:0;
+      background-position:center;
+      background-size:cover;
+      background-repeat:no-repeat;
+      opacity:0;
+      transform: scale(1.02);
+      transition: opacity 220ms ease, transform 220ms ease;
+      filter: contrast(1.05) saturate(1.08);
+    }
+
+    /* 1秒「しっかり見せる」 */
+    .modal.showimg {
+      background: rgba(0,0,0,0.28); /* 暗転しすぎない */
+    }
+    .modal.showimg .modal-bg{
+      opacity: 1;
+      transform: scale(1.00);
+    }
+
+    /* 技名表示フェーズ（画像は薄く残す：B） */
     .modal.showmove{
-      background: rgba(0,0,0,0.86);
+      background: rgba(0,0,0,0.82); /* 受け＝しっかり暗転 */
+    }
+    .modal.showmove .modal-bg{
+      opacity: 0.22;  /* 薄く残す（B） */
+      transform: scale(1.00);
     }
 
     .modal-inner {
       position: absolute;
       inset: 0;
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: center;
-      padding: 14px;
+      padding: 0 14px;
     }
 
-    /* 画像カード＋技名をまとめた箱（中央） */
-    .modal-stack{
-      width: min(680px, 100%);
+    /* やや下寄せ：中央より下 */
+    .modal-box {
+      margin-top: 58vh; /* さらに少し下 */
+      width: 100%;
+      max-width: 680px;
       text-align: center;
       opacity: 0;
       transform: translateY(10px);
       transition: opacity 220ms ease, transform 220ms ease;
     }
-    .modal.showimg .modal-stack,
-    .modal.showmove .modal-stack{
+    .modal.showmove .modal-box{
       opacity: 1;
       transform: translateY(0);
     }
 
-    /* 画像カード（主役） */
-    .modal-card{
-      width: 100%;
-      border-radius: 18px;
-      overflow: hidden;
-      border: 1px solid rgba(255,255,255,0.08);
-      background: rgba(20,20,24,0.65);
-      box-shadow: 0 18px 50px rgba(0,0,0,.55);
-    }
-    .modal-img{
-      width: 100%;
-      height: min(56vh, 420px);
-      background-position: center;
-      background-size: cover;
-      background-repeat: no-repeat;
-
-      /* ②YES：明るく（背景にしすぎない） */
-      filter: brightness(1.28) contrast(1.05) saturate(1.08);
-      transform: scale(1.01);
-    }
-
-    /* 技名（画像の下に1行） */
-    .modal-moveWrap{
-      margin-top: 12px;
-    }
     .modal-move {
-      display: inline-block;
+      display: block;
       white-space: nowrap;  /* 1行強制 */
       overflow: visible;    /* 省略なし */
       font-weight: 950;
@@ -134,24 +135,15 @@
       line-height: 1.05;
       font-size: 42px; /* JSでフィット */
       color: var(--text);
-      text-shadow: 0 10px 30px rgba(0,0,0,.65);
-      padding: 6px 10px;
-      border-radius: 12px;
-      background: rgba(0,0,0,0.18); /* 画像が明るくても読める最低限 */
-      border: 1px solid rgba(255,255,255,0.06);
+      text-shadow: 0 10px 30px rgba(0,0,0,.55);
     }
 
-    /* showimg中は技名を出さない（画像を1秒“しっかり見せる”） */
-    .modal.showimg .modal-moveWrap{
-      opacity: 0;
-      transform: translateY(6px);
-      transition: opacity 180ms ease, transform 180ms ease;
-    }
-    /* showmoveで技名を出す（③：画像はそのまま） */
-    .modal.showmove .modal-moveWrap{
-      opacity: 1;
-      transform: translateY(0);
-      transition: opacity 220ms ease, transform 220ms ease;
+    /* ★追加：本日のプロレス事件史を“薄くしない” */
+    #historyText{
+      color: var(--text);
+      font-size: 16px;
+      font-weight: 800;
+      line-height: 1.55;
     }
   </style>
 </head>
@@ -212,16 +204,12 @@
     </div>
   </div>
 
-  <!-- モータル（C：中央カード画像→技名） -->
+  <!-- モータル（画像→技名） -->
   <div class="modal" id="modal">
+    <div class="modal-bg" id="modalBg" aria-hidden="true"></div>
     <div class="modal-inner">
-      <div class="modal-stack">
-        <div class="modal-card">
-          <div class="modal-img" id="modalImg" aria-hidden="true"></div>
-        </div>
-        <div class="modal-moveWrap">
-          <span class="modal-move" id="modalMove">—</span>
-        </div>
+      <div class="modal-box">
+        <span class="modal-move" id="modalMove">—</span>
       </div>
     </div>
   </div>
@@ -246,14 +234,14 @@
   const copyMoveBtn = document.getElementById('copyMoveBtn');
 
   const modal = document.getElementById('modal');
-  const modalImg = document.getElementById('modalImg');
+  const modalBg = document.getElementById('modalBg');
   const modalMove = document.getElementById('modalMove');
 
   const LIMIT = 40;
 
   // ===== モータル設定 =====
-  // 画像ファイルは index.html と同じ階層に置く（例：mortal-bg.png）
-  const MORTAL_IMG = "mortal-bg.png";
+  // 画像ファイルはリポジトリ直下に置く（例：mortal.jpg）
+  const MORTAL_IMG = "mortal.jpg";
 
   // ① 画像を“しっかり見せる”時間（ms）
   const IMG_HOLD = 1000;
@@ -350,34 +338,30 @@
   }
 
   function setVideoLinkForMove(moveText){
+    // デモでは検索リンク体裁（実運用はNJPW側で差し替え）
     videoLink.href = "#";
     videoLink.textContent = "NJPW WORLDで検索（" + moveText + "）";
     // 将来ここだけ差し替え：
     // videoLink.href = "https://njpwworld.com/search?q=" + encodeURIComponent(moveText);
   }
 
-  // モータル演出（C）：①中央カード画像を1秒しっかり → ②技名（画像そのまま） → フェードアウト
+  // モータル演出：①画像を1秒しっかり → ②技名（画像は薄く残す） → フェードアウト
   function playMortal(moveText){
     return new Promise((resolve)=>{
-      // 画像カードにセット
-      modalImg.style.backgroundImage = `url('${MORTAL_IMG}')`;
+      modalBg.style.backgroundImage = `url('${MORTAL_IMG}')`;
 
       modal.classList.add('on');
       modal.classList.remove('showimg','showmove');
 
-      // 技名セット＋1行フィット（showimg中は見せない）
       fitOneLine(modalMove, moveText);
 
-      // 画像フェーズ
       setTimeout(()=> modal.classList.add('showimg'), 20);
 
-      // ① 1秒しっかり見せた後に ②技名へ（画像はそのまま）
       setTimeout(()=> {
         modal.classList.remove('showimg');
         modal.classList.add('showmove');
       }, IMG_HOLD);
 
-      // 技名滞在 → フェードアウト開始
       setTimeout(()=> {
         modal.classList.remove('showmove');
       }, IMG_HOLD + MOVE_HOLD);
@@ -413,7 +397,6 @@
 
     lockAfterJudge();
 
-    // モータル（毎回出す）
     await playMortal(m.name);
 
     resultCard.style.display = "block";
