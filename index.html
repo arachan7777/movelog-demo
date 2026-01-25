@@ -63,6 +63,8 @@
     .modal {
       position: fixed;
       inset: 0;
+      width: 100%;
+      height: 100dvh; /* ★Androidのvhズレ対策 */
       display: none;
       z-index: 9999;
       pointer-events: none; /* デモではタップで閉じない */
@@ -71,10 +73,12 @@
     }
     .modal.on { display:block; }
 
-    /* 背景画像レイヤー（基準コードのまま残す：今回は主役にしない） */
+    /* 背景画像レイヤー */
     .modal-bg {
       position:absolute;
       inset:0;
+      width: 100%;
+      height: 100dvh; /* ★ */
       background-position:center;
       background-size:cover;
       background-repeat:no-repeat;
@@ -82,53 +86,52 @@
       transform: scale(1.02);
       transition: opacity 220ms ease, transform 220ms ease;
       filter: contrast(1.05) saturate(1.08);
-      display:none; /* ★C：背景扱いをやめる（削除ではなく無効化） */
     }
 
-    /* 1秒「しっかり見せる」：暗くし過ぎない */
+    /* 1秒「しっかり見せる」 */
     .modal.showimg {
-      background: rgba(0,0,0,0.18); /* ★明るめ */
+      background: rgba(0,0,0,0.28); /* 暗転しすぎない */
     }
     .modal.showimg .modal-bg{
       opacity: 1;
       transform: scale(1.00);
     }
 
-    /* 技名表示フェーズ（画像はそのまま：YES） */
+    /* 技名表示フェーズ（画像は薄く残す：B） */
     .modal.showmove{
-      background: rgba(0,0,0,0.32); /* ★暗転は弱め／画像主役のまま */
+      background: rgba(0,0,0,0.82); /* 受け＝しっかり暗転 */
     }
     .modal.showmove .modal-bg{
-      opacity: 0.22;  /* 基準コードのまま残す（display:noneなので影響しない） */
+      opacity: 0.22;  /* 薄く残す（B） */
       transform: scale(1.00);
     }
 
     .modal-inner {
       position: absolute;
       inset: 0;
-      display: flex;
-      align-items: flex-start;
-      justify-content: center;
+      width: 100%;
+      height: 100dvh; /* ★ */
+      display: block; /* ★flex下げをやめる */
       padding: 0 14px;
     }
 
-    /* やや下寄せ：中央より下 */
+    /* ★ここが本題：vh margin方式を廃止して、必ず画面内に来る位置決めへ */
     .modal-box {
-      margin-top: 58vh; /* さらに少し下 */
-      width: 100%;
+      position: absolute;
+      left: 14px;
+      right: 14px;
+      top: 60%;                 /* “やや下寄せ”の中心位置 */
+      transform: translateY(-50%);
       max-width: 680px;
+      margin: 0 auto;
       text-align: center;
+
       opacity: 0;
-      transform: translateY(10px);
       transition: opacity 220ms ease, transform 220ms ease;
-    }
-    .modal.showimg .modal-box{
-      opacity: 1;
-      transform: translateY(0);
+      /* transformは上で使っているので、フェーズ用は別で */
     }
     .modal.showmove .modal-box{
       opacity: 1;
-      transform: translateY(0);
     }
 
     .modal-move {
@@ -150,33 +153,6 @@
       font-weight: 800;
       line-height: 1.55;
     }
-
-    /* ===== ★C：画像を“カード化”して中央表示（主役） ===== */
-    .mortal-card {
-      display: inline-block;
-      width: min(520px, 92vw);
-      border-radius: 18px;
-      overflow: hidden;
-      border: 1px solid rgba(255,255,255,0.10);
-      box-shadow: 0 22px 70px rgba(0,0,0,0.55);
-      background: rgba(0,0,0,0.18);
-    }
-    .mortal-img {
-      display:block;
-      width:100%;
-      height:auto;
-      /* ★明るく・はっきり：画像そのものを少し持ち上げる */
-      filter: brightness(1.12) contrast(1.06) saturate(1.04);
-    }
-    /* 技名は画像の上に“重ねない”で、カード内で下に出す（Cのカード感） */
-    .mortal-caption {
-      padding: 10px 12px 12px;
-      background: rgba(0,0,0,0.28); /* 読みやすさ用の薄い帯 */
-    }
-    /* showimgでは技名は出さない／showmoveで出す（画像はそのまま） */
-    .modal.showimg .mortal-caption { display:none; }
-    .modal.showmove .mortal-caption { display:block; }
-
   </style>
 </head>
 <body>
@@ -241,15 +217,7 @@
     <div class="modal-bg" id="modalBg" aria-hidden="true"></div>
     <div class="modal-inner">
       <div class="modal-box">
-
-        <!-- ★C：主役の画像カード（基準コードを削らず“追加”） -->
-        <div class="mortal-card" aria-hidden="true">
-          <img class="mortal-img" id="mortalImg" src="" alt="">
-          <div class="mortal-caption">
-            <span class="modal-move" id="modalMove">—</span>
-          </div>
-        </div>
-
+        <span class="modal-move" id="modalMove">—</span>
       </div>
     </div>
   </div>
@@ -277,15 +245,11 @@
   const modalBg = document.getElementById('modalBg');
   const modalMove = document.getElementById('modalMove');
 
-  /* ★追加：カード画像（C） */
-  const mortalImg = document.getElementById('mortalImg');
-
   const LIMIT = 40;
 
   // ===== モータル設定 =====
-  // リポジトリ直下の画像名に合わせる
-  // あなたの状況：readme / index / mortal.png
-  const MORTAL_IMG = "mortal.png";
+  // 画像ファイルはリポジトリ直下に置く（例：mortal.jpg）
+  const MORTAL_IMG = "mortal.jpg";
 
   // ① 画像を“しっかり見せる”時間（ms）
   const IMG_HOLD = 1000;
@@ -389,31 +353,23 @@
     // videoLink.href = "https://njpwworld.com/search?q=" + encodeURIComponent(moveText);
   }
 
-  // モータル演出：①画像を1秒しっかり（主役カード）→ ②技名（画像そのまま：YES）→ フェードアウト
+  // モータル演出：①画像を1秒しっかり → ②技名（画像は薄く残す） → フェードアウト
   function playMortal(moveText){
     return new Promise((resolve)=>{
-      // 基準コードの要素を“削らず”セット（背景はdisplay:noneなので影響しない）
       modalBg.style.backgroundImage = `url('${MORTAL_IMG}')`;
-
-      // ★C：主役カードのimgをセット
-      mortalImg.src = MORTAL_IMG;
 
       modal.classList.add('on');
       modal.classList.remove('showimg','showmove');
 
-      // 技名セット＋1行フィット（showmoveで表示）
       fitOneLine(modalMove, moveText);
 
-      // 画像を出す（即）
       setTimeout(()=> modal.classList.add('showimg'), 20);
 
-      // ① 1秒しっかり見せた後に ②技名へ（画像は変えない）
       setTimeout(()=> {
         modal.classList.remove('showimg');
         modal.classList.add('showmove');
       }, IMG_HOLD);
 
-      // 技名滞在 → フェードアウト
       setTimeout(()=> {
         modal.classList.remove('showmove');
       }, IMG_HOLD + MOVE_HOLD);
@@ -449,7 +405,6 @@
 
     lockAfterJudge();
 
-    // モータル（毎回出す）
     await playMortal(m.name);
 
     resultCard.style.display = "block";
