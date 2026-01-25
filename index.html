@@ -81,12 +81,14 @@
       opacity:0;
       transform: scale(1.02);
       transition: opacity 220ms ease, transform 220ms ease;
-      filter: contrast(1.05) saturate(1.08);
+      /* ★暗い問題：ここで“明るく”寄せる（画像そのものは差し替えない） */
+      filter: brightness(1.25) contrast(1.04) saturate(1.06);
     }
 
     /* 1秒「しっかり見せる」 */
     .modal.showimg {
-      background: rgba(0,0,0,0.28); /* 暗転しすぎない */
+      /* ★暗幕を薄く：画像を“前”に出す */
+      background: rgba(0,0,0,0.08);
     }
     .modal.showimg .modal-bg{
       opacity: 1;
@@ -95,7 +97,7 @@
 
     /* 技名表示フェーズ（画像は薄く残す：B） */
     .modal.showmove{
-      background: rgba(0,0,0,0.82); /* 受け＝しっかり暗転 */
+      background: rgba(0,0,0,0.78); /* 受け＝暗転（少しだけ弱め） */
     }
     .modal.showmove .modal-bg{
       opacity: 0.22;  /* 薄く残す（B） */
@@ -232,7 +234,7 @@
   const LIMIT = 40;
 
   // ===== モータル設定 =====
-  // リポジトリ直下：mortal.png
+  // リポジトリ直下：mortal.png（あなたの現状に合わせて固定）
   const MORTAL_IMG = "mortal.png";
 
   // ① 画像を“しっかり見せる”時間（ms）
@@ -340,25 +342,20 @@
   // モータル演出：①画像を1秒しっかり → ②技名（画像は薄く残す） → フェードアウト
   function playMortal(moveText){
     return new Promise((resolve)=>{
-      // 背景画像セット
       modalBg.style.backgroundImage = `url('${MORTAL_IMG}')`;
 
       modal.classList.add('on');
       modal.classList.remove('showimg','showmove');
 
-      // 技名セット＋1行フィット（この時点ではまだ表示しない）
       fitOneLine(modalMove, moveText);
 
-      // 画像を出す（即）
       setTimeout(()=> modal.classList.add('showimg'), 20);
 
-      // ① 1秒しっかり見せた後に ②技名へ
       setTimeout(()=> {
         modal.classList.remove('showimg');
         modal.classList.add('showmove');
       }, IMG_HOLD);
 
-      // 技名滞在 → フェードアウト
       setTimeout(()=> {
         modal.classList.remove('showmove');
       }, IMG_HOLD + MOVE_HOLD);
@@ -394,7 +391,6 @@
 
     lockAfterJudge();
 
-    // モータル（毎回出す）
     await playMortal(m.name);
 
     resultCard.style.display = "block";
@@ -433,4 +429,3 @@
 </script>
 </body>
 </html>
-```0
