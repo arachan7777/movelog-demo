@@ -59,45 +59,73 @@
     .pill { display:inline-block; padding: 4px 10px; border-radius: 999px; border:1px solid var(--line); color:var(--sub); font-size: 12px; margin-top: 10px; }
     .toast { display:none; margin-top:10px; color:#b8f5c2; font-size: 12px; }
 
-    /* ===== モータル（暗転→技名） ===== */
+    /* ===== モータル（画像→技名） ===== */
     .modal {
       position: fixed;
       inset: 0;
       display: none;
-      background: rgba(0,0,0,0);
       z-index: 9999;
-      transition: background 180ms ease;
       pointer-events: none; /* デモではタップで閉じない */
+      background: rgba(0,0,0,0);
+      transition: background 200ms ease;
     }
-    .modal.on {
-      display: block;
+    .modal.on { display:block; }
+
+    /* 背景画像レイヤー */
+    .modal-bg {
+      position:absolute;
+      inset:0;
+      background-position:center;
+      background-size:cover;
+      background-repeat:no-repeat;
+      opacity:0;
+      transform: scale(1.02);
+      transition: opacity 220ms ease, transform 220ms ease;
+      filter: contrast(1.05) saturate(1.08);
     }
-    .modal.dark {
-      background: rgba(0,0,0,0.92); /* 一瞬の暗転＝受け */
+
+    /* 1秒「しっかり見せる」 */
+    .modal.showimg {
+      background: rgba(0,0,0,0.28); /* 暗転しすぎない */
     }
+    .modal.showimg .modal-bg{
+      opacity: 1;
+      transform: scale(1.00);
+    }
+
+    /* 技名表示フェーズ（画像は薄く残す：B） */
+    .modal.showmove{
+      background: rgba(0,0,0,0.82); /* 受け＝しっかり暗転 */
+    }
+    .modal.showmove .modal-bg{
+      opacity: 0.22;  /* 薄く残す（B） */
+      transform: scale(1.00);
+    }
+
     .modal-inner {
       position: absolute;
-      left: 0; right: 0;
-      top: 0; bottom: 0;
+      inset: 0;
       display: flex;
       align-items: flex-start;
       justify-content: center;
       padding: 0 14px;
     }
+
     /* やや下寄せ：中央より下 */
     .modal-box {
-      margin-top: 56vh; /* ここが“やや下寄せ”のコア */
+      margin-top: 58vh; /* さらに少し下 */
       width: 100%;
       max-width: 680px;
       text-align: center;
       opacity: 0;
-      transform: translateY(8px);
+      transform: translateY(10px);
       transition: opacity 220ms ease, transform 220ms ease;
     }
-    .modal.dark .modal-box{
+    .modal.showmove .modal-box{
       opacity: 1;
       transform: translateY(0);
     }
+
     .modal-move {
       display: block;
       white-space: nowrap;  /* 1行強制 */
@@ -105,8 +133,7 @@
       font-weight: 950;
       letter-spacing: .02em;
       line-height: 1.05;
-      /* 基本サイズ（後でJSでフィットさせる） */
-      font-size: 42px;
+      font-size: 42px; /* JSでフィット */
       color: var(--text);
       text-shadow: 0 10px 30px rgba(0,0,0,.55);
     }
@@ -169,8 +196,9 @@
     </div>
   </div>
 
-  <!-- モータル（暗転→技名） -->
+  <!-- モータル（画像→技名） -->
   <div class="modal" id="modal">
+    <div class="modal-bg" id="modalBg" aria-hidden="true"></div>
     <div class="modal-inner">
       <div class="modal-box">
         <span class="modal-move" id="modalMove">—</span>
@@ -198,9 +226,23 @@
   const copyMoveBtn = document.getElementById('copyMoveBtn');
 
   const modal = document.getElementById('modal');
+  const modalBg = document.getElementById('modalBg');
   const modalMove = document.getElementById('modalMove');
 
   const LIMIT = 40;
+
+  // ===== モータル設定 =====
+  // 画像ファイルはリポジトリ直下に置く（例：mortal.jpg）
+  const MORTAL_IMG = "mortal.jpg";
+
+  // ① 画像を“しっかり見せる”時間（ms）
+  const IMG_HOLD = 1000;
+
+  // 技名表示の滞在（ms）
+  const MOVE_HOLD = 1200;
+
+  // フェードアウト（ms）
+  const OUT = 320;
 
   // 仮データ（後で差し替え前提）
   const moves = [
@@ -262,7 +304,6 @@
     const maxW = Math.min(window.innerWidth - 28, 680); // パディング分
     let size = 42;
     el.style.fontSize = size + "px";
-    // 収まるまで縮める（最小18px）
     while(el.scrollWidth > maxW && size > 18){
       size -= 1;
       el.style.fontSize = size + "px";
@@ -288,65 +329,62 @@
     newBtn.style.display = "none";
   }
 
-  // モータル演出：一瞬暗転 → 技名表示 → フェードアウト
-  function playMortal(moveText){
-    return new Promise((resolve)=>{
-      modal.classList.add('on');
-      // 初期：暗転無し（透明）で表示だけ立てる
-      modal.classList.remove('dark');
-
-      // 技名セット＋1行フィット
-      fitOneLine(modalMove, moveText);
-
-      // すぐ暗転（受け）
-      setTimeout(()=>{
-        modal.classList.add('dark');
-      }, 30);
-
-      // 表示維持（長技名を読む時間）
-      const HOLD = 1400;   // 技名表示の本体
-      const OUT  = 300;    // フェードアウト
-      const TOTAL = HOLD + OUT;
-
-      setTimeout(()=>{
-        // フェードアウト開始
-        modal.classList.remove('dark');
-      }, HOLD);
-
-      setTimeout(()=>{
-        modal.classList.remove('on');
-        resolve();
-      }, TOTAL);
-    });
-  }
-
   function setVideoLinkForMove(moveText){
     // デモでは検索リンク体裁（実運用はNJPW側で差し替え）
-    const q = encodeURIComponent(moveText);
     videoLink.href = "#";
     videoLink.textContent = "NJPW WORLDで検索（" + moveText + "）";
-    // もし将来NJPW WORLD検索URLが決まったらここだけ差し替え：
-    // videoLink.href = "https://njpwworld.com/search?q=" + q;
+    // 将来ここだけ差し替え：
+    // videoLink.href = "https://njpwworld.com/search?q=" + encodeURIComponent(moveText);
+  }
+
+  // モータル演出：①画像を1秒しっかり → ②技名（画像は薄く残す） → フェードアウト
+  function playMortal(moveText){
+    return new Promise((resolve)=>{
+      // 背景画像セット
+      modalBg.style.backgroundImage = `url('${MORTAL_IMG}')`;
+
+      modal.classList.add('on');
+      modal.classList.remove('showimg','showmove');
+
+      // 技名セット＋1行フィット（この時点ではまだ表示しない）
+      fitOneLine(modalMove, moveText);
+
+      // 画像を出す（即）
+      setTimeout(()=> modal.classList.add('showimg'), 20);
+
+      // ① 1秒しっかり見せた後に ②技名へ
+      setTimeout(()=> {
+        modal.classList.remove('showimg');
+        modal.classList.add('showmove');
+      }, IMG_HOLD);
+
+      // 技名滞在 → フェードアウト
+      setTimeout(()=> {
+        modal.classList.remove('showmove');
+      }, IMG_HOLD + MOVE_HOLD);
+
+      setTimeout(()=> {
+        modal.classList.remove('on','showimg','showmove');
+        resolve();
+      }, IMG_HOLD + MOVE_HOLD + OUT);
+    });
   }
 
   judgeBtn.addEventListener('click', async ()=>{
     const raw = diary.value.trim();
 
     if(!raw){
-      // 空欄はEVIL（口調演出）＋結果は出さない
       msg.innerHTML = "<strong>EVIL：</strong>空欄じゃ判定は出来ん！<br/>よ〜く覚えておけ！";
       resultCard.style.display = "none";
       return;
     }
 
-    // 40字超えでも判定はする（ただし一言）
     if(raw.length > LIMIT){
       msg.innerHTML = "<strong>オーカーン：</strong>長文は要らん。削ぎ落とせ。<br/>※40文字以内だと閣下は申しております";
     } else {
       msg.innerHTML = "<strong>判定完了。</strong><br/>当たる日も外れる日もある。それがプロレス。";
     }
 
-    // 判定結果を先に確定（モータル後に結果表示）
     const m = pick(moves);
     moveName.textContent = m.name;
     moveMeta.textContent = m.meta + " — " + m.q;
@@ -354,13 +392,11 @@
     setVideoLinkForMove(m.name);
     historyText.textContent = pick(histories);
 
-    // 連続判定に見えないようにロック
     lockAfterJudge();
 
-    // モータル演出（暗転→技名）
+    // モータル（毎回出す）
     await playMortal(m.name);
 
-    // 結果表示
     resultCard.style.display = "block";
     resultCard.scrollIntoView({behavior:"smooth", block:"start"});
   });
@@ -373,7 +409,6 @@
   });
 
   newBtn.addEventListener('click', ()=>{
-    // 新しい一撃：完全リセット（再判定はここから）
     diary.value = "";
     setCount();
     msg.innerHTML = "<strong>一撃で決めろ！</strong><br/>※40文字以内だと閣下は申しております";
