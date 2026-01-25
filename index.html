@@ -5,163 +5,113 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>NJPW MOVE LOG（デモ）</title>
   <style>
-    :root{
-      --bg:#0b0b0c;
-      --card:#131316;
-      --text:#f2f2f4;
-      --sub:#a8a8b3;
-      --line:#24242a;
-      --accent:#e6c15a;
-      --danger:#ff5a5f;
-    }
-    *{ box-sizing:border-box; }
-    body{
-      margin:0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans JP", sans-serif;
-      background:var(--bg);
-      color:var(--text);
-    }
-    .wrap{ max-width:720px; margin:0 auto; padding:18px 14px 44px; }
+    :root { --bg:#0b0b0c; --card:#131316; --text:#f2f2f4; --sub:#a8a8b3; --line:#24242a; --accent:#e6c15a; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans JP", sans-serif; background:var(--bg); color:var(--text); }
+    .wrap { max-width: 720px; margin: 0 auto; padding: 18px 14px 40px; }
+    .title { font-weight: 900; letter-spacing: .02em; font-size: 22px; }
+    .tag { margin-top:6px; color:var(--sub); font-size: 13px; }
 
-    .title{ font-weight:900; letter-spacing:.02em; font-size:22px; }
-    .tag{ margin-top:6px; color:var(--sub); font-size:13px; }
+    .card { background:var(--card); border:1px solid var(--line); border-radius: 14px; padding: 14px; margin-top: 12px; }
+    .label { color:var(--sub); font-size: 12px; margin-bottom: 8px; }
 
-    .card{
-      background:var(--card);
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:14px;
-      margin-top:12px;
-    }
-    .label{ color:var(--sub); font-size:12px; margin-bottom:8px; }
-
-    textarea{
-      width:100%;
-      min-height:86px;
-      resize:vertical;
-      border-radius:12px;
-      border:1px solid var(--line);
-      background:#0f0f12;
-      color:var(--text);
-      padding:12px;
-      font-size:16px;
-      line-height:1.4;
-      outline:none;
+    textarea {
+      width:100%; min-height: 86px; resize: vertical;
+      border-radius: 12px; border:1px solid var(--line);
+      background:#0f0f12; color:var(--text);
+      padding: 12px; font-size: 16px; line-height: 1.4;
+      outline: none;
     }
     textarea[disabled]{
-      opacity:.75;
-      filter:saturate(.7);
-      cursor:not-allowed;
+      opacity: .6;
+      cursor: not-allowed;
     }
 
-    .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:10px; }
-
-    button{
-      appearance:none;
-      border:1px solid var(--line);
-      background:#17171c;
-      color:var(--text);
-      border-radius:12px;
-      padding:10px 12px;
-      font-size:14px;
-      font-weight:800;
+    .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top: 10px; }
+    button {
+      appearance:none; border:1px solid var(--line);
+      background:#17171c; color:var(--text);
+      border-radius: 12px; padding: 10px 12px; font-size: 14px; font-weight: 800;
       cursor:pointer;
     }
-    button.primary{ border-color:#3a3a44; background:#1e1e26; }
-    button:disabled{
+    button.primary { border-color: #3a3a44; background:#1e1e26; }
+    button:hover { filter: brightness(1.05); }
+    button[disabled]{
       opacity:.45;
       cursor:not-allowed;
-    }
-    button:hover{ filter:brightness(1.05); }
-
-    .count{ margin-left:auto; color:var(--sub); font-size:12px; }
-
-    .msg{
-      margin-top:10px;
-      padding:10px 12px;
-      border-radius:12px;
-      border:1px dashed #3a3a44;
-      color:var(--text);
-      background:#101014;
-    }
-    .msg strong{ color:var(--accent); }
-
-    .hr{ height:1px; background:var(--line); margin:12px 0; }
-
-    .result{ display:none; }
-
-    .kicker{ color:var(--sub); font-size:12px; }
-    .move{ font-size:20px; font-weight:900; margin-top:6px; letter-spacing:.02em; }
-    .meta{ color:var(--sub); font-size:13px; margin-top:6px; line-height:1.5; }
-
-    a{ color:var(--accent); text-decoration:none; }
-    a:hover{ text-decoration:underline; }
-
-    .pill{
-      display:inline-block;
-      padding:4px 10px;
-      border-radius:999px;
-      border:1px solid var(--line);
-      color:var(--sub);
-      font-size:12px;
-      margin-top:10px;
+      filter:none;
     }
 
-    .toast{ display:none; margin-top:10px; color:#b8f5c2; font-size:12px; }
+    .count { margin-left:auto; color:var(--sub); font-size: 12px; }
+    .msg { margin-top: 10px; padding: 10px 12px; border-radius: 12px; border:1px dashed #3a3a44; color: var(--text); background:#101014; }
+    .msg strong { color: var(--accent); }
 
-    /* 受け（モータル） */
-    .overlay{
-      position:fixed;
-      inset:0;
-      background:#000;
-      opacity:0;
-      pointer-events:none;
-      display:flex;
-      align-items:flex-end;
-      justify-content:center;
-      padding:0 14px 14vh;
-      transition:opacity .18s ease;
-      z-index:999;
-    }
-    .overlay.on{ opacity:.92; pointer-events:auto; }
-    .overlayCard{
-      width:min(720px, 100%);
-      border:1px solid #2a2a31;
-      border-radius:16px;
-      background:#0b0b0c;
-      padding:14px;
-    }
-    .overlayKicker{
-      color:var(--sub);
-      font-size:12px;
-      letter-spacing:.06em;
-    }
-    .overlayMove{
-      margin-top:8px;
-      font-size:24px;
-      font-weight:1000;
-      letter-spacing:.02em;
-    }
-    .overlayFakeImg{
-      margin-top:12px;
-      height:140px;
-      border-radius:14px;
-      border:1px solid #22222a;
-      background:linear-gradient(180deg, #101014, #0b0b0c);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      color:#6c6c77;
-      font-size:12px;
-      font-weight:700;
-    }
+    .hr { height:1px; background:var(--line); margin: 12px 0; }
 
-    /* 事件史の視認性：技名と同等の強さ */
-    .historyTitle{ color:var(--sub); font-size:12px; }
-    .historyBig{ font-size:20px; font-weight:900; margin-top:6px; letter-spacing:.02em; }
+    .result { display:none; }
+    .kicker { color:var(--sub); font-size: 12px; }
+    .move { font-size: 22px; font-weight: 950; margin-top: 6px; letter-spacing: .02em; }
+    .meta { color:var(--sub); font-size: 13px; margin-top: 6px; line-height:1.5; }
+
+    a { color: var(--accent); text-decoration: none; font-weight: 800; }
+    a:hover { text-decoration: underline; }
+
+    .pill { display:inline-block; padding: 4px 10px; border-radius: 999px; border:1px solid var(--line); color:var(--sub); font-size: 12px; margin-top: 10px; }
+    .toast { display:none; margin-top:10px; color:#b8f5c2; font-size: 12px; }
+
+    /* ===== モータル（暗転→技名） ===== */
+    .modal {
+      position: fixed;
+      inset: 0;
+      display: none;
+      background: rgba(0,0,0,0);
+      z-index: 9999;
+      transition: background 180ms ease;
+      pointer-events: none; /* デモではタップで閉じない */
+    }
+    .modal.on {
+      display: block;
+    }
+    .modal.dark {
+      background: rgba(0,0,0,0.92); /* 一瞬の暗転＝受け */
+    }
+    .modal-inner {
+      position: absolute;
+      left: 0; right: 0;
+      top: 0; bottom: 0;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 0 14px;
+    }
+    /* やや下寄せ：中央より下 */
+    .modal-box {
+      margin-top: 56vh; /* ここが“やや下寄せ”のコア */
+      width: 100%;
+      max-width: 680px;
+      text-align: center;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 220ms ease, transform 220ms ease;
+    }
+    .modal.dark .modal-box{
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .modal-move {
+      display: block;
+      white-space: nowrap;  /* 1行強制 */
+      overflow: visible;    /* 省略なし */
+      font-weight: 950;
+      letter-spacing: .02em;
+      line-height: 1.05;
+      /* 基本サイズ（後でJSでフィットさせる） */
+      font-size: 42px;
+      color: var(--text);
+      text-shadow: 0 10px 30px rgba(0,0,0,.55);
+    }
   </style>
 </head>
-
 <body>
   <div class="wrap">
     <div class="title">NJPW MOVE LOG（デモ）</div>
@@ -169,10 +119,11 @@
 
     <div class="card">
       <div class="label">今日の一撃（40文字以内推奨）</div>
-      <textarea id="diary" maxlength="240" placeholder="例：弁当買ったのに、箸が入ってなかった。"></textarea>
+      <textarea id="diary" maxlength="200" placeholder="例：弁当買ったのに、箸が入ってなかった。"></textarea>
 
       <div class="row">
         <button class="primary" id="judgeBtn">技判定</button>
+        <button id="newBtn" style="display:none;">新しい一撃</button>
         <button id="clearBtn">消す</button>
         <div class="count"><span id="len">0</span>/40</div>
       </div>
@@ -191,22 +142,18 @@
 
       <div class="hr"></div>
 
-      <!-- 動画導線（ここは絶対に消さない） -->
       <div class="kicker">動画で受ける</div>
       <div class="meta">
         <a id="videoLink" href="#" target="_blank" rel="noopener">NJPW WORLDで検索（—）</a><br/>
-        <span class="pill">会員以外は視聴できなくても導線になる</span>
+        <span class="pill" id="worldNote">会員以外は視聴できなくても導線になる</span>
       </div>
 
       <div class="hr"></div>
 
-      <!-- 事件史（見えるように：技名と同等の強さ） -->
-      <div class="historyTitle">本日のプロレス事件史</div>
-      <div class="historyBig" id="historyText">—</div>
+      <div class="kicker">本日のプロレス事件史</div>
+      <div class="meta" id="historyText">—</div>
 
-      <div class="hr"></div>
-
-      <div class="row">
+      <div class="row" style="margin-top:12px;">
         <button id="shareBtn">X用文面をコピー</button>
         <button id="copyMoveBtn">技名だけコピー</button>
       </div>
@@ -216,18 +163,18 @@
       <div class="kicker">注意（デモ）</div>
       <div class="meta">
         ・画像・権利物は使わない前提。<br/>
-        ・技と日記のズレは仕様（SNSで広がる“余白”）。<br/>
+        ・技と日記のズレは仕様。SNSで広がる“余白”。<br/>
         ・このページは「触感」確認のための疑似サイト。
       </div>
     </div>
   </div>
 
-  <!-- 受け（暗転＋技名） -->
-  <div class="overlay" id="overlay">
-    <div class="overlayCard">
-      <div class="overlayKicker">RECEIVE</div>
-      <div class="overlayMove" id="overlayMove">—</div>
-      <div class="overlayFakeImg">画像（仮）｜将来：技ごとに差し替え</div>
+  <!-- モータル（暗転→技名） -->
+  <div class="modal" id="modal">
+    <div class="modal-inner">
+      <div class="modal-box">
+        <span class="modal-move" id="modalMove">—</span>
+      </div>
     </div>
   </div>
 
@@ -246,46 +193,46 @@
 
   const judgeBtn = document.getElementById('judgeBtn');
   const clearBtn = document.getElementById('clearBtn');
+  const newBtn   = document.getElementById('newBtn');
   const shareBtn = document.getElementById('shareBtn');
   const copyMoveBtn = document.getElementById('copyMoveBtn');
 
-  const overlay = document.getElementById('overlay');
-  const overlayMove = document.getElementById('overlayMove');
+  const modal = document.getElementById('modal');
+  const modalMove = document.getElementById('modalMove');
 
   const LIMIT = 40;
 
-  // 仮データ（あとで差し替え想定）
+  // 仮データ（後で差し替え前提）
   const moves = [
-    { name:"ツープラトン誤爆", meta:"（タッグ系／全般）", q:"弁当の箸が無い。だが二人で当たってしまう日もある。"},
-    { name:"キドクラッチ", meta:"（木戸修）", q:"静かに怒ってる。今日はそれでいい。"},
-    { name:"ケンカキック", meta:"（蝶野正洋）", q:"言い返さず、足だけが出る日。"},
-    { name:"腕拉ぎ逆十字固め", meta:"（ケンドー・カシン）", q:"じわじわ効く。気づいた時には取れてる。"},
-    { name:"丸め込み", meta:"（矢野通／全般）", q:"一瞬の隙、日常に多い。"},
-    { name:"セントーン", meta:"（ヒロ斎藤）", q:"特に何もない日に落ちてくる。"},
-    { name:"毒霧", meta:"（ムタ系）", q:"理由が分からない遅延。視界が白い。"},
-    { name:"小こけし", meta:"（本間朋晃）", q:"靴下が片方いない。受け身は取れ。"},
-    { name:"スポイラーチョーカー", meta:"（ディック東郷）", q:"相手のペースに乗らない。締める。"},
-    { name:"昇天・改", meta:"（後藤洋央紀）", q:"空回りしても最後は立つ。"},
+    { name:"ツープラトン誤爆", meta:"（タッグ系／全般）", q:"弁当の箸が無い。だが二人で当たってしまう日もある。" },
+    { name:"キドクラッチ", meta:"（木戸修）", q:"静かに怒ってる。今日はそれでいい。" },
+    { name:"ケンカキック", meta:"（蝶野正洋）", q:"言い返さず、足だけが出る日。" },
+    { name:"腕拉ぎ逆十字固め", meta:"（ケンドー・カシン）", q:"じわじわ効く。気づいた時には取れてる。" },
+    { name:"丸め込み", meta:"（矢野通／全般）", q:"一瞬の隙、日常に多い。" },
+    { name:"セントーン", meta:"（ヒロ斎藤）", q:"特に何もない日に落ちてくる。" },
+    { name:"毒霧", meta:"（ムタ系）", q:"理由が分からない遅延。視界が白い。" },
+    { name:"小こけし", meta:"（本間朋晃）", q:"靴下が片方いない。受け身は取れ。" },
+    { name:"スポイラーチョーカー", meta:"（ディック東郷）", q:"相手のペースに乗らない。締める。" },
+    { name:"昇天・改", meta:"（後藤洋央紀）", q:"空回りしても最後は立つ。" },
   ];
 
   const histories = [
     "日付で語る文化。1.4や10.12みたいに、数字が試合を呼び出す。",
-    "事件史は名試合じゃない。空気が変わった日を拾う。",
-    "コアに光。派手じゃない技が、人生では一番効く。"
+    "事件史は名試合じゃない。“空気が変わった日”を拾う。",
+    "コアに光。派手じゃない技が、人生では一番効く。",
   ];
-
-  let locked = false;          // 判定後ロック
-  let usedOverlay = false;     // 演出は「一回だけ」
 
   function setCount(){
     const n = diary.value.length;
     len.textContent = String(Math.min(n, LIMIT));
     if(n > LIMIT){
       msg.innerHTML = "<strong>一撃で決めろ！</strong><br/>※40文字以内だと閣下は申しております（現在 "+n+" 文字）";
-    }else{
+    } else {
       msg.innerHTML = "<strong>一撃で決めろ！</strong><br/>※40文字以内だと閣下は申しております";
     }
   }
+  diary.addEventListener('input', setCount);
+  setCount();
 
   function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 
@@ -309,136 +256,143 @@
     }
   }
 
-  function googleNJPWSearchURL(keyword){
-    // NJPW WORLDの検索URL仕様に依存しないよう、確実に動く導線にする
-    const q = encodeURIComponent(`site:njpwworld.com ${keyword}`);
-    return `https://www.google.com/search?q=${q}`;
+  // 1行強制で、はみ出さないようにサイズを詰める（省略なし）
+  function fitOneLine(el, text){
+    el.textContent = text;
+    const maxW = Math.min(window.innerWidth - 28, 680); // パディング分
+    let size = 42;
+    el.style.fontSize = size + "px";
+    // 収まるまで縮める（最小18px）
+    while(el.scrollWidth > maxW && size > 18){
+      size -= 1;
+      el.style.fontSize = size + "px";
+    }
   }
+  window.addEventListener('resize', ()=>{
+    if(modal.classList.contains('on')){
+      fitOneLine(modalMove, modalMove.textContent);
+    }
+  });
 
-  function lockUI(){
-    locked = true;
+  // UIロック：判定後は“連続で遊ぶ”に見えないようにする
+  function lockAfterJudge(){
     diary.disabled = true;
     judgeBtn.disabled = true;
-
-    // 「消す」を「新しい一撃」に変える（再判定に見えない）
-    clearBtn.textContent = "新しい一撃";
-    clearBtn.classList.add("primary");
+    clearBtn.disabled = true;
+    newBtn.style.display = "inline-block";
   }
-
-  function unlockUI(){
-    locked = false;
+  function unlockForNew(){
     diary.disabled = false;
     judgeBtn.disabled = false;
-
-    clearBtn.textContent = "消す";
-    clearBtn.classList.remove("primary");
+    clearBtn.disabled = false;
+    newBtn.style.display = "none";
   }
 
-  function showOverlayOnce(move){
-    if(usedOverlay) return;
-    usedOverlay = true;
+  // モータル演出：一瞬暗転 → 技名表示 → フェードアウト
+  function playMortal(moveText){
+    return new Promise((resolve)=>{
+      modal.classList.add('on');
+      // 初期：暗転無し（透明）で表示だけ立てる
+      modal.classList.remove('dark');
 
-    overlayMove.textContent = move.name;
+      // 技名セット＋1行フィット
+      fitOneLine(modalMove, moveText);
 
-    // 一瞬の暗転 → 受け
-    overlay.classList.add("on");
-    setTimeout(()=>{
-      overlay.classList.remove("on");
-    }, 520);
+      // すぐ暗転（受け）
+      setTimeout(()=>{
+        modal.classList.add('dark');
+      }, 30);
+
+      // 表示維持（長技名を読む時間）
+      const HOLD = 1400;   // 技名表示の本体
+      const OUT  = 300;    // フェードアウト
+      const TOTAL = HOLD + OUT;
+
+      setTimeout(()=>{
+        // フェードアウト開始
+        modal.classList.remove('dark');
+      }, HOLD);
+
+      setTimeout(()=>{
+        modal.classList.remove('on');
+        resolve();
+      }, TOTAL);
+    });
   }
 
-  diary.addEventListener('input', ()=>{
-    if(locked) return;
-    setCount();
-  });
-  setCount();
+  function setVideoLinkForMove(moveText){
+    // デモでは検索リンク体裁（実運用はNJPW側で差し替え）
+    const q = encodeURIComponent(moveText);
+    videoLink.href = "#";
+    videoLink.textContent = "NJPW WORLDで検索（" + moveText + "）";
+    // もし将来NJPW WORLD検索URLが決まったらここだけ差し替え：
+    // videoLink.href = "https://njpwworld.com/search?q=" + q;
+  }
 
-  judgeBtn.addEventListener('click', ()=>{
-    if(locked) return;
-
+  judgeBtn.addEventListener('click', async ()=>{
     const raw = diary.value.trim();
 
     if(!raw){
-      // 空欄はEVIL（メッセージのみ。結果は出さない）
+      // 空欄はEVIL（口調演出）＋結果は出さない
       msg.innerHTML = "<strong>EVIL：</strong>空欄じゃ判定は出来ん！<br/>よ〜く覚えておけ！";
       resultCard.style.display = "none";
       return;
     }
 
-    const m = pick(moves);
-
-    // メッセージ
+    // 40字超えでも判定はする（ただし一言）
     if(raw.length > LIMIT){
       msg.innerHTML = "<strong>オーカーン：</strong>長文は要らん。削ぎ落とせ。<br/>※40文字以内だと閣下は申しております";
-    }else{
+    } else {
       msg.innerHTML = "<strong>判定完了。</strong><br/>当たる日も外れる日もある。それがプロレス。";
     }
 
-    // 結果表示
+    // 判定結果を先に確定（モータル後に結果表示）
+    const m = pick(moves);
     moveName.textContent = m.name;
-    moveMeta.textContent = `${m.meta} — ${m.q}`;
+    moveMeta.textContent = m.meta + " — " + m.q;
 
-    // 動画導線（必ず有効なリンク）
-    videoLink.href = googleNJPWSearchURL(m.name);
-    videoLink.textContent = `NJPW WORLDで検索（${m.name}）`;
-
-    // 事件史（大きく）
+    setVideoLinkForMove(m.name);
     historyText.textContent = pick(histories);
 
+    // 連続判定に見えないようにロック
+    lockAfterJudge();
+
+    // モータル演出（暗転→技名）
+    await playMortal(m.name);
+
+    // 結果表示
     resultCard.style.display = "block";
-
-    // 演出（1回だけ）
-    showOverlayOnce(m);
-
-    // ロック（再判定に見えない）
-    lockUI();
-
-    // スクロール
-    setTimeout(()=>{
-      resultCard.scrollIntoView({behavior:"smooth", block:"start"});
-    }, 120);
+    resultCard.scrollIntoView({behavior:"smooth", block:"start"});
   });
 
   clearBtn.addEventListener('click', ()=>{
-    // 判定前：普通の消去
-    if(!locked){
-      diary.value = "";
-      setCount();
-      msg.innerHTML = "<strong>一撃で決めろ！</strong><br/>※40文字以内だと閣下は申しております";
-      resultCard.style.display = "none";
-      return;
-    }
-
-    // 判定後：新しい一撃（完全リセット）
     diary.value = "";
-    unlockUI();
-    usedOverlay = false; // デモ上は「新しい一撃」で演出復活（本番は1日1回に差し替え可能）
     setCount();
     msg.innerHTML = "<strong>一撃で決めろ！</strong><br/>※40文字以内だと閣下は申しております";
     resultCard.style.display = "none";
+  });
+
+  newBtn.addEventListener('click', ()=>{
+    // 新しい一撃：完全リセット（再判定はここから）
+    diary.value = "";
+    setCount();
+    msg.innerHTML = "<strong>一撃で決めろ！</strong><br/>※40文字以内だと閣下は申しております";
+    resultCard.style.display = "none";
+    unlockForNew();
     diary.focus();
+    diary.scrollIntoView({behavior:"smooth", block:"center"});
   });
 
   shareBtn.addEventListener('click', ()=>{
     if(resultCard.style.display !== "block") return;
     const text = diary.value.trim().slice(0, LIMIT);
-    const share =
-`NJPW MOVE LOG（デモ）
-今日の一撃：${text}
-判定：${moveName.textContent}
-${videoLink.textContent}
-#NJPW #MOVelog`;
+    const share = `NJPW MOVE LOG（デモ）\n今日の一撃：${text}\n判定：${moveName.textContent}\n#NJPW #MOVelog`;
     copyText(share);
   });
 
   copyMoveBtn.addEventListener('click', ()=>{
     if(resultCard.style.display !== "block") return;
     copyText(moveName.textContent);
-  });
-
-  // オーバーレイはタップでも閉じられる（スマホ向け）
-  overlay.addEventListener('click', ()=>{
-    overlay.classList.remove("on");
   });
 })();
 </script>
