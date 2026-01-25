@@ -81,14 +81,12 @@
       opacity:0;
       transform: scale(1.02);
       transition: opacity 220ms ease, transform 220ms ease;
-      /* ★暗い問題：ここで“明るく”寄せる（画像そのものは差し替えない） */
-      filter: brightness(1.25) contrast(1.04) saturate(1.06);
+      filter: contrast(1.05) saturate(1.08);
     }
 
     /* 1秒「しっかり見せる」 */
     .modal.showimg {
-      /* ★暗幕を薄く：画像を“前”に出す */
-      background: rgba(0,0,0,0.08);
+      background: rgba(0,0,0,0.28); /* 暗転しすぎない */
     }
     .modal.showimg .modal-bg{
       opacity: 1;
@@ -97,7 +95,7 @@
 
     /* 技名表示フェーズ（画像は薄く残す：B） */
     .modal.showmove{
-      background: rgba(0,0,0,0.78); /* 受け＝暗転（少しだけ弱め） */
+      background: rgba(0,0,0,0.82); /* 受け＝しっかり暗転 */
     }
     .modal.showmove .modal-bg{
       opacity: 0.22;  /* 薄く残す（B） */
@@ -138,6 +136,14 @@
       font-size: 42px; /* JSでフィット */
       color: var(--text);
       text-shadow: 0 10px 30px rgba(0,0,0,.55);
+    }
+
+    /* ★追加：本日のプロレス事件史を“薄くしない” */
+    #historyText{
+      color: var(--text);
+      font-size: 16px;
+      font-weight: 800;
+      line-height: 1.55;
     }
   </style>
 </head>
@@ -234,7 +240,7 @@
   const LIMIT = 40;
 
   // ===== モータル設定 =====
-  // リポジトリ直下：mortal.png（あなたの現状に合わせて固定）
+  // リポジトリ直下にある画像名に合わせる
   const MORTAL_IMG = "mortal.png";
 
   // ① 画像を“しっかり見せる”時間（ms）
