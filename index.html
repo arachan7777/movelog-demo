@@ -63,8 +63,6 @@
     .modal {
       position: fixed;
       inset: 0;
-      width: 100%;
-      height: 100dvh; /* ★Androidのvhズレ対策 */
       display: none;
       z-index: 9999;
       pointer-events: none; /* デモではタップで閉じない */
@@ -73,65 +71,70 @@
     }
     .modal.on { display:block; }
 
-    /* 背景画像レイヤー */
-    .modal-bg {
-      position:absolute;
-      inset:0;
-      width: 100%;
-      height: 100dvh; /* ★ */
-      background-position:center;
-      background-size:cover;
-      background-repeat:no-repeat;
-      opacity:0;
-      transform: scale(1.02);
-      transition: opacity 220ms ease, transform 220ms ease;
-      filter: contrast(1.05) saturate(1.08);
-    }
-
-    /* 1秒「しっかり見せる」 */
+    /* ① 画像を“しっかり見せる”フェーズ：暗転は弱め、画像を主役に */
     .modal.showimg {
-      background: rgba(0,0,0,0.28); /* 暗転しすぎない */
-    }
-    .modal.showimg .modal-bg{
-      opacity: 1;
-      transform: scale(1.00);
+      background: rgba(0,0,0,0.35);
     }
 
-    /* 技名表示フェーズ（画像は薄く残す：B） */
+    /* ② 技名表示フェーズ：背景は少し濃く（受け）ただし画像は暗くしない（③） */
     .modal.showmove{
-      background: rgba(0,0,0,0.82); /* 受け＝しっかり暗転 */
-    }
-    .modal.showmove .modal-bg{
-      opacity: 0.22;  /* 薄く残す（B） */
-      transform: scale(1.00);
+      background: rgba(0,0,0,0.62);
     }
 
+    /* 画面全体の中央にカードを置く（C） */
     .modal-inner {
       position: absolute;
       inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      /* “やや下寄せ” */
+      transform: translateY(6vh);
+    }
+
+    /* カード全体（画像＋技名） */
+    .modal-stack{
       width: 100%;
-      height: 100dvh; /* ★ */
-      display: block; /* ★flex下げをやめる */
-      padding: 0 14px;
-    }
-
-    /* ★ここが本題：vh margin方式を廃止して、必ず画面内に来る位置決めへ */
-    .modal-box {
-      position: absolute;
-      left: 14px;
-      right: 14px;
-      top: 60%;                 /* “やや下寄せ”の中心位置 */
-      transform: translateY(-50%);
-      max-width: 680px;
-      margin: 0 auto;
+      max-width: 560px;
       text-align: center;
-
       opacity: 0;
+      transform: translateY(10px);
       transition: opacity 220ms ease, transform 220ms ease;
-      /* transformは上で使っているので、フェーズ用は別で */
     }
-    .modal.showmove .modal-box{
+    .modal.on .modal-stack{
       opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* 画像カード（主役） */
+    .modal-cardimg{
+      width: 100%;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.10);
+      overflow: hidden;
+      box-shadow: 0 18px 60px rgba(0,0,0,0.55);
+      background: #000;
+    }
+
+    .modal-cardimg img{
+      width: 100%;
+      height: auto;
+      display: block;
+      /* “もっと明るく・はっきり” */
+      filter: brightness(1.18) contrast(1.05) saturate(1.08);
+    }
+
+    /* 技名（カードの下に出す：C） */
+    .modal-movewrap{
+      margin-top: 14px;
+      opacity: 0;
+      transform: translateY(6px);
+      transition: opacity 220ms ease, transform 220ms ease;
+    }
+    .modal.showmove .modal-movewrap{
+      opacity: 1;
+      transform: translateY(0);
     }
 
     .modal-move {
@@ -143,7 +146,7 @@
       line-height: 1.05;
       font-size: 42px; /* JSでフィット */
       color: var(--text);
-      text-shadow: 0 10px 30px rgba(0,0,0,.55);
+      text-shadow: 0 12px 34px rgba(0,0,0,.60);
     }
 
     /* ★追加：本日のプロレス事件史を“薄くしない” */
@@ -212,12 +215,16 @@
     </div>
   </div>
 
-  <!-- モータル（画像→技名） -->
+  <!-- モータル（カード画像→技名） -->
   <div class="modal" id="modal">
-    <div class="modal-bg" id="modalBg" aria-hidden="true"></div>
     <div class="modal-inner">
-      <div class="modal-box">
-        <span class="modal-move" id="modalMove">—</span>
+      <div class="modal-stack">
+        <div class="modal-cardimg">
+          <img id="mortalImg" alt="mortal" />
+        </div>
+        <div class="modal-movewrap">
+          <span class="modal-move" id="modalMove">—</span>
+        </div>
       </div>
     </div>
   </div>
@@ -242,23 +249,16 @@
   const copyMoveBtn = document.getElementById('copyMoveBtn');
 
   const modal = document.getElementById('modal');
-  const modalBg = document.getElementById('modalBg');
   const modalMove = document.getElementById('modalMove');
+  const mortalImgEl = document.getElementById('mortalImg');
 
   const LIMIT = 40;
 
   // ===== モータル設定 =====
-  // 画像ファイルはリポジトリ直下に置く（例：mortal.jpg）
-  const MORTAL_IMG = "mortal.jpg";
-
-  // ① 画像を“しっかり見せる”時間（ms）
-  const IMG_HOLD = 1000;
-
-  // 技名表示の滞在（ms）
-  const MOVE_HOLD = 1200;
-
-  // フェードアウト（ms）
-  const OUT = 320;
+  const MORTAL_IMG = "mortal.jpg";  // ← あなたがjpgに変更した前提
+  const IMG_HOLD = 1000;            // ① 画像を“しっかり見せる”
+  const MOVE_HOLD = 1200;           // 技名表示
+  const OUT = 320;                  // フェードアウト
 
   // 仮データ（後で差し替え前提）
   const moves = [
@@ -317,7 +317,7 @@
   // 1行強制で、はみ出さないようにサイズを詰める（省略なし）
   function fitOneLine(el, text){
     el.textContent = text;
-    const maxW = Math.min(window.innerWidth - 28, 680); // パディング分
+    const maxW = Math.min(window.innerWidth - 32, 560); // カード幅上限に寄せる
     let size = 42;
     el.style.fontSize = size + "px";
     while(el.scrollWidth > maxW && size > 18){
@@ -353,23 +353,28 @@
     // videoLink.href = "https://njpwworld.com/search?q=" + encodeURIComponent(moveText);
   }
 
-  // モータル演出：①画像を1秒しっかり → ②技名（画像は薄く残す） → フェードアウト
+  // モータル演出：①カード画像を1秒しっかり → ②技名表示（画像は暗くしない） → フェードアウト
   function playMortal(moveText){
     return new Promise((resolve)=>{
-      modalBg.style.backgroundImage = `url('${MORTAL_IMG}')`;
+      // 画像セット（カードの主役）
+      mortalImgEl.src = MORTAL_IMG;
 
       modal.classList.add('on');
       modal.classList.remove('showimg','showmove');
 
+      // 技名セット＋1行フィット（showmoveの時に出す）
       fitOneLine(modalMove, moveText);
 
+      // 画像を出す
       setTimeout(()=> modal.classList.add('showimg'), 20);
 
+      // ① 画像を“しっかり見せる” → ② 技名へ
       setTimeout(()=> {
         modal.classList.remove('showimg');
         modal.classList.add('showmove');
       }, IMG_HOLD);
 
+      // 技名滞在 → フェードアウト
       setTimeout(()=> {
         modal.classList.remove('showmove');
       }, IMG_HOLD + MOVE_HOLD);
@@ -405,6 +410,7 @@
 
     lockAfterJudge();
 
+    // モータル（毎回出す）
     await playMortal(m.name);
 
     resultCard.style.display = "block";
